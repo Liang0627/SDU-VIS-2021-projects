@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title>2021MC2</title>
+    <script src="http://d3js.org/d3.v5.min.js"></script>
+</head>
+
+<body>
+    <svg></svg>
+    <svg id="svg2"></svg>
+    <script>
+        function abs(x) { if (x > 0) return x; else return -x; }
+        timeparse = d3.timeParse("%x %H:%M:%S");
+        shopgps =[]
+        d3.csv("data/shopgps.csv").then(data=>{
+            for(var i = 0 ; i < data.length;i++){
+                shopgps.push(data[i]);
+            }
+        });
+        // 总画布
+
+        var width1 = 1500, height1 = 1500;
+        var width2 = 1150, height2 = 1830;
+        var width = width1, height = height1;
+        const svg = d3.select("svg")
+            .attr("width", width1 + width2)
+            .attr("height", height1);
+        // 天 总控
+        var Day = '06';
+        var starttime = timeparse("01/06/2014 00:00:00"), endtime = timeparse("01/06/2014 23:59:59");
+        const today = svg.append("text").text("DAY:01/" + Day + "/2014").attr('x', 100).attr('y', 200).attr("font-size", 30);
+
+        // 类,包含地图和路径信息
+        function Map(width, height) {
+            this.xLeft = 24.824163, this.xRight = 24.901821, this.yUp = 36.0949, this.ydown = 36.045015;
+            this.centerx = (xLeft + xRight) / 2, this.centery = (yUp + ydown) / 2;
+            this.xlen = xRight - xLeft, this.ylen = yUp - ydown;
+            this.centerx += 0.05 * xlen;
+            this.centery += 0.01 * ylen;
+            this.image_shape = [2750 / 3.8 * 2, 1535 / 2.9 * 2];
+            this.check = function (timestamp) {
+                var ans = timestamp >= starttime && timestamp <= endtime;
+                if (ans) return "inline";
+                else return "none";
+            }
+            this.projection = d3.geoMercator()
+                .center([centerx, centery])
+                .scale(1000000) //设置缩放量
+                .translate([width / 2, height / 2]); // 设置平移量
+
+            const geo = d3.geoPath().projection(projection);
+
+
+            this.init = function () {
+                make_backgroud_map();
+                appendbackgroundimg();
+            }
+            this.make_backgroud_map = function () {
+                d3.json("mapjson/Abila.json").then(data => {
+                    const g = svg.append('g');
+
+                    g.selectAll('path')
+                        .data(data.features)
+                        .join('path')
+                        .attr('d', geo)
+                        .style("stroke", '#404466')
+                })
+            }
+            // 贴背景图
+            this.appendbackgroundimg = function () {
+                var centerpoint = { x: width / 2, y: height / 2 };
+                var image_half_width = 2750 / 3.8, image_half_height = 1535 / 2.9;
+                var img = svg.append("image")
+                    .attr("x", centerpoint.x - image_half_width)
+                    .attr("y", centerpoint.y - image_half_height)
+                    .attr("rx", 0)
+                    .attr("ry", 0)
+                    .attr("height", image_half_height * 2)
+                    .attr("width", image_half_width * 2)
+                    .attr("preserveAspectRatio", "none meet")
+                    .attr("href", "../img/tourst.png");
+            }
+            this.leftdown = function () {
+                var centerpoint = { x: width / 2, y: height / 2 };
+                var image_half_width = 2750 / 3.8, image_half_height = 1535 / 2.9;
+                return [centerpoint.x - image_half_width, centerpoint.y + image_half_height];
+            }
+            // 展示一条路径
+            this.showpath = function (x) {
+                d3.csv("data/gps/gps" + x + "/" + Day + ".csv").then(
+                    data => {
+                        const data1 = data.slice(0, data.length - 1);
+                        const data2 = data.slice(1, data.length);
+                        const data3 = [];
+                        const fu = data => [data.long, data.lat];
+
+                        const linear = d3.scaleLinear().domain([0, data1.length]).range([0, 1]);
+                        const compute = d3.interpolate('#377BA6', '#078C03');
+
+                        for (var i = 0; i < data1.length; i++) {
+                            data3.push({ Info: data1[i].Timestamp + '\n Car: ' + data1[i].id, type: 'Feature', geometry: { type: 'LineString', coordinates: [fu(data1[i]), fu(data2[i])] }, properties: null });
+                        }
+                        svg.append('g')
+                            .attr('id', 'id' + x)
+                            .selectAll('path')
+                            .data(data3)
+                            .join('path')
+                            .attr("class", "path")
+                            .attr('d', geo)
+                            .attr("display", "inline")
+                            .attr('stroke-width', 3)
+                            .style("stroke", (d, i) => compute(linear(i)))
+                            .append("title")
+                            .text(d => d.Info)
+                            ;
+
+                    }
+                );
+            }
+            //  添加
+            this.addpath = function (x) {
+                d3.csv("data/gps/gps" + x + "/" + Day + ".csv").then(
+                    data => {
+                        const data1 = data.slice(0, data.length - 1);
+                        const data2 = data.slice(1, data.length);
+                        const data3 = [];
+                        const fu = data => [data.long, data.lat];
+
+                        const linear = d3.scaleLinear().domain([0, data1.length]).range([0, 1]);
+                        const compute = d3.interpolate('#377BA6', '#078C03');
+
+                        for (var i = 0; i < data1.length; i++) {
+                            data3.push({
+                                Timestamp: "01/" + Day + "/2014 " + data1[i].Timestamp,
+                                Info: data1[i].Timestamp
+                                    +
+                                    '\n' + data1[i].CurrentEmploymentType + ' ' + data1[i].CurrentEmploymentTitle
+                                    +
+                                    '\n' + data1[i].FirstName + ' ' + data1[i].LastName + ' ',
+                                type: 'Feature',
+                                geometry: { type: 'LineString', coordinates: [fu(data1[i]), fu(data2[i])] }, properties: null
+                            }
+                            );
+                        }
+                        svg.append('g')
+                            // 记录类
+                            // 记录类
+                            .attr("class", "group_path")
+                            .attr('id', 'id_add_' + x)
+                            .selectAll('path')
+                            .data(data3)
+                            .join('path')
+                            .attr("class", "path")
+                            .attr('d', geo)
+                            .attr("display", d => check(timeparse(d.Timestamp)))
+                            .attr('stroke-width', 3)
+                            .style("stroke", (d, i) => compute(linear(i)))
+                            .append("title")
+                            .text(d => d.Info)
+                            ;
+                    }
+                );
+            }
+            this.Removepath = function (x) { d3.selectAll("#id" + x).remove(); }
+            this.Removepath2 = function (x) { d3.selectAll("#id_add_" + x).remove(); }
+
+            this.updata = function () {d3.selectAll(".path").attr("display", d => check(timeparse(d.Timestamp))); }
+
+            this.find=function(x){
+                for(var i = 0 ;i<shopgps.length;i++){
+                    if(x==shopgps[i].name){
+                        return [ Number(shopgps[i].lon),Number(shopgps[i].lat)];
+                    }  
+                }
+                return [0,0];
+            }
+            this.cir=function(x){
+                d3.select("#cir").remove();
+
+                svg.append("circle")
+                    .attr('id', 'cir')
+                    .attr('cx',projection(find(x))[0])
+                    .attr('cy', projection(find(x))[1])
+                    .attr('fill', 'none')
+                    .attr('r', 50)
+                    .style('stroke','#225ea8')
+                    .style('stroke-width','5')
+                    ;
+            }
+            return this;
+        }
+        MAP = Map(width1, height1); MAP.init();
+
+
+        // 类，刷子
+        function Brush(Map) {
+
+            this.timescale = d3.scaleTime()
+                .domain([starttime, endtime])
+                .range([0, width])
+                ;
+
+            this.updataChart = function () {
+                extend = d3.event.selection;
+                starttime = timescale.invert(extend[0]);
+                endtime = timescale.invert(extend[1]);
+                Map.updata();
+            }
+
+            this.brush = d3.brushX()
+                .extent([[0, 0], [width, 50]])
+                .on("start brush", updataChart)
+                ;
+
+            svgbrush = svg.append('g').attr("class", "brush")
+                .attr("transform", "translate(" + (Map.leftdown()[0]) + " " + (Map.leftdown()[1] + 30) + ")");
+            svgbrush.call(brush);
+
+
+
+
+
+            this.timeaxis = d3.axisBottom(timescale);
+            svgbrush.append('g')
+                .attr("transform", "translate(0," + (50) + ")")
+                .call(timeaxis);
+
+            this.change_Day = function (x) {
+                timescale = d3.scaleTime()
+                    .domain([starttime, endtime])
+                    .range([0, width])
+                    ;
+                this.brush.on("start brush", updataChart()
+                );
+                svgbrush.call(brush);
+            }
+
+            return this;
+        }
+        BURSH = Brush(MAP);
+
+
+        function Botton(Map) {
+            this.All_ids = [];
+            for (var i = 1; i <= 35; i++)All_ids.push(i); for (var i = 101; i <= 107; i++)if (i != 102 && i != 103) All_ids.push(i);
+            this.ids1 = All_ids.slice(0, All_ids.length / 2);
+            this.ids2 = All_ids.slice(All_ids.length / 2);
+
+            this.drawpattorn = function (ids, x) {
+                var gpsids = d3.map(ids);
+                var PattorScale = d3.scaleBand().domain(gpsids.keys()).range([0, Map.image_shape[0]]);
+                var r = 20;
+                svg.append('g')
+                    .selectAll("circle")
+                    .data(gpsids.entries())
+                    .join('circle')
+                    .attr('class', 'pattorn')
+                    .attr('id', d => 'batton' + d.value)
+                    .attr('cx', d => PattorScale(d.key) + Map.leftdown()[0])
+                    .attr('cy', Map.leftdown()[1] + 50 * x)
+                    // .attr('id',)
+                    .attr('fill', '#3DA9D8')
+                    .attr('r', r)
+                    ;
+
+                svg.append('g')
+                    .selectAll("text")
+                    .data(gpsids.entries())
+                    .join('text')
+                    .attr('class', 'pattorn_text')
+                    .attr('x', d => PattorScale(d.key) + r / 1.5)
+                    .attr('y', Map.leftdown()[1] + 50 * x + r / 3)
+                    .text(d => d.value)
+                    .on('click', function (d) {
+                        d.value = -d.value;
+                        if (d.value > 0) {
+                            MAP.Removepath2(d.value);
+                            d3.select(this).attr('fill', 'black');
+                            d3.select("#batton" + d.value).attr('fill', '#3DA9D8');
+                        }
+                    }
+                    )
+                    .on('mouseover', function (d) {
+                        MAP.addpath(abs(d.value));
+                        d3.select(this).attr('fill', '#FEA443');
+                        d3.select("#batton" + d.value).attr('fill', '#705E78');
+                    }
+                    )
+                    .on('mouseout', function (d) {
+                        if (d.value > 0) {
+                            MAP.Removepath2(d.value);
+                            d3.select(this).attr('fill', 'black');
+                            d3.select("#batton" + d.value).attr('fill', '#3DA9D8');
+                        }
+                    }
+                    )
+                    ;
+            }
+            this.change_Day = function () {
+                d3.selectAll(".pattorn").attr('fill', '#3DA9D8');
+                d3.selectAll(".pattorn_text").attr('fill', 'black');
+            }
+            this.init = function () {
+                drawpattorn(ids1, 3); drawpattorn(ids2, 4);
+            }
+            return this;
+        }
+
+        BOTTONS = Botton(MAP); BOTTONS.init();
+
+
+        function binchart(wi, he) {
+            this.wid = wi; this.hei = he;
+            d3.select("#svg2").attr("width", wi).attr("height", he);
+
+            this.show = function (day, shop) {
+                day += 5;
+                d3.csv("data/binchartdata/date" + day + "/" + shop + ".csv").then(data => {
+                    d3.select("#pie").remove();
+                    var g = d3.select("#svg2")
+                        .append('g').attr("id", "pie");
+                    var pie = d3.pie().sort(null).value(d => d.price);
+
+                    var colorScale = d3.scaleOrdinal()
+                        .domain(d3.range(data.length))
+                        .range(d3.schemeCategory10);
+
+                    var pieData = pie(data);
+            
+                    var arc_generator = d3.arc()
+                        .innerRadius(0)
+                        .outerRadius(wid / 2);
+                    g = g.selectAll(".g")
+                        .data(pieData)
+                        .enter()
+                        .append("g")
+                        .attr("transform", "translate(" + wid / 2 + "," + hei / 2 + ")")//位置信息
+
+                    g.append("path")
+                        .attr("d", function (d) {
+                            return arc_generator(d);//往弧形生成器中出入数据
+                        })
+                        .attr("fill", function (d, i) {
+                            return colorScale(i);//设置颜色
+                        });
+                    g.append("text")
+                        .data(pieData)
+                        .attr("transform", function (d) {//位置设在中心处
+                            return "translate(" + arc_generator.centroid(d) + ")";
+                        })
+                        .attr("text-anchor", "middle")
+                        .text(function (d) {
+                            return d.data.loyaltynum;
+                        })
+                        .style("font-size", wid/data.length/8+"px")
+
+                });
+
+            }
+            return this;
+        }
+        PIE = binchart(800, 800);
+
+        function New_Day(x) {
+            x += 5;
+            if (x < 10) Day = '0' + x;
+            else Day = x + "";
+            today.text("DAY:01/" + Day + "/2014");
+
+            starttime = timeparse("01/" + Day + "/2014 00:00:00");
+            endtime = timeparse("01/" + Day + "/2014 23:59:59");
+            BURSH.timescale = d3.scaleTime()
+                .domain([starttime, endtime])
+                .range([0, width])
+                ;
+
+            MAP.change_Day();
+            BOTTONS.change_Day();
+            d3.selectAll(".group_path").remove();
+        }
+        // 心跳图
+        function heat() {
+            this.array_data = [];
+            // 一句话定义了众多变量， 定义了块儿的位置、宽高、小格子的边长等等与布局有关的变量
+            this.margin = { top: 200, right: 0, bottom: 100, left: 300 + width1 },
+                this.width = width2 + width1 - margin.left - margin.right,        // 所有格子区域的宽度，即Heatmap的宽度
+                this.height = height2 - margin.top - margin.bottom,
+                this.gridSize = Math.floor(width / 24),    // 求地板，即去掉小数部分，width分成24份
+                this.legendElementWidth = gridSize * 2,    // 底下长条的长度，是格子边长的两倍
+                this.buckets = 9,        // 一共9种颜色级别
+                this.colors = ["#ffffd9", "#edf8b1", "#c7e9b4", "#7fcdbb", "#41b6c4", "#1d91c0", "#225ea8", "#253494", "#081d58"],
+                this.tests = ["date6", "date7", "date8", "date9", "date10", "date11", "date12", "date13", "date14", "date15", "date16", "date17", "date18", "date19"];
+            this.g = svg.append("g")    // 在svg内加入一个g（group组），并设置元素g的显示位置
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            this.changopacity = function (x) {
+                g.selectAll(".hourbordered")
+                    .style('opacity', 0.4);
+
+
+                g.selectAll(".hourbordered")
+                    .style('opacity', function (d, i) {
+                        if (i == x) return 1.0;
+                        // if (i % 14 == x % 14 || Math.floor(x / 14) == Math.floor(i / 14)) return 0.7;
+                        return 0.4;
+                    })
+                    ;
+            }
+
+            d3.csv("data/data1.csv").then(data => { 
+
+                // 设置chart，svg
+
+
+
+                // 编辑姓名行
+                var dayLabels = g.selectAll(".nameLabel")
+                    .data(data)
+                    .enter()    // 为data中每一项创建一个".dayLabel"
+                    .append("text")    // 为days中每一项创建一的".dayLabel"添加文本，下面全是设置文本的属性
+                    .text(function (d, i) { return data[i].name; })
+                    .attr("x", 0)
+                    .attr("y", function (d, i) { return i * gridSize; })
+                    .style("text-anchor", "end")
+                    .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+                    .attr("class", function (d, i) { return ((i >= 0 && i <= 4) ? "nameLabel mono axis axis-workweek" : "nameLabel mono axis"); }
+                    );
+                var names = data.map(d => d.name);
+                // 日期行
+                var timeLabels = g.selectAll(".testLabel")
+                    .data(tests)
+                    .enter().append("text")
+                    .text(function (d) {
+                        var len = d.length;
+                        var res = parseInt(d[len - 1]);
+                        if (d[len - 2] >= "0" && d[len - 2] <= "9") res = parseInt(d[len - 2]) * 10 + res;
+                        else res = "0" + res;
+                        return res;
+                    })
+                    .attr("x", function (d, i) { return i * gridSize; })
+                    .attr("y", 0)
+                    .style("text-anchor", "middle")
+                    .attr("transform", "translate(" + gridSize / 2 + ", -6)")
+                    .attr("class", function (d, i) {
+                        return ((i >= 7 && i <= 16) ? "testLabel mono axis axis-worktime" : "testLabel mono axis");
+                    }
+                    );
+                r = 14;
+                // 画出格子，暂不涂色，color[0]
+                for (var i = 0; i < 33; i++) {
+                    array_data[i * r] = { value: data[i].date6, day: 1, shop: names[i] };
+                    array_data[i * r + 1] = { value: data[i].date7, day: 2, shop: names[i] };
+                    array_data[i * r + 2] = { value: data[i].date8, day: 3, shop: names[i] };
+                    array_data[i * r + 3] = { value: data[i].date9, day: 4, shop: names[i] };
+                    array_data[i * r + 4] = { value: data[i].date10, day: 5, shop: names[i] };
+                    array_data[i * r + 5] = { value: data[i].date11, day: 6, shop: names[i] };
+                    array_data[i * r + 6] = { value: data[i].date12, day: 7, shop: names[i] };
+                    array_data[i * r + 7] = { value: data[i].date13, day: 8, shop: names[i] };
+                    array_data[i * r + 8] = { value: data[i].date14, day: 9, shop: names[i] };
+                    array_data[i * r + 9] = { value: data[i].date15, day: 10, shop: names[i] };
+                    array_data[i * r + 10] = { value: data[i].date16, day: 11, shop: names[i] };
+                    array_data[i * r + 11] = { value: data[i].date17, day: 12, shop: names[i] };
+                    array_data[i * r + 12] = { value: data[i].date18, day: 13, shop: names[i] };
+                    array_data[i * r + 13] = { value: data[i].date19, day: 14, shop: names[i] };
+                }
+                var colorScale = d3.scaleQuantile()        // 按分位数取值，可使每个区域内元素个数相等
+                    .domain([0, buckets - 1, d3.max(array_data, (d) => d.value)])  // 定义域
+                    // domain([0, n, 数据的最大值]);
+                    .range(colors);    // 值域：是颜色数组，函数的返回值是代表某种颜色的字符串
+
+                var heatMap = g.selectAll(".score")
+                    .data(array_data)
+                    .enter()        // 为data中每一项创建一个".hour"
+                    .append("rect")
+                    .attr("x", function (d, i) { return (i % 14) * gridSize; })
+                    .attr("y", function (d, i) { return parseInt(i / 14) * gridSize; })
+                    .attr("rx", 6)
+                    .attr("ry", 6)
+                    .attr("class", "hourbordered")
+                    .attr("width", gridSize)
+                    .attr("height", gridSize)
+                    .style("fill", "#FFFFFF")
+                    .style("opacity", 0.6)
+                    .on("click", function (d, i) {
+                        console.log(d.shop);
+                        MAP.cir(d.shop);
+                        changopacity(i);
+                        New_Day(d.day);
+                        
+                        // console.log(d.shop.replace(/\s*/g,""));
+                        PIE.show(d.day, d.shop.replace(/\s*/g, ""));
+                    }
+                    )
+                    ;
+
+                // duration(1000) 在1000ns也就是1s内将格子图上色
+                heatMap.transition().duration(1000)
+                    .style("fill", function (d) { return colorScale(d.value); });
+
+                // 鼠标停留显示value
+                heatMap.append("title").text(function (d) { return d.value; });
+
+                // legend 是一个有7个组的什么东西，，，
+                var legend = g.selectAll(".legend")
+                    .data([0].concat(colorScale.quantiles()), function (d) { return d.value; })    // 由data获得的元素个数为7
+                    .enter().append("g")
+                    .attr("class", "legend");
+
+                legend.append("rect")
+                    .attr("x", function (d, i) { return legendElementWidth * i; })
+                    .attr("y", gridSize * 35)
+                    .attr("width", legendElementWidth)
+                    .attr("height", gridSize / 2)
+                    .style("fill", function (d, i) { return colors[i]; });
+
+                legend.append("text")
+                    .attr("class", "mono")
+                    .text(function (d) { return ">= " + Math.round(d); })
+                    .attr("x", function (d, i) { return legendElementWidth * i; })
+                    .attr("y", gridSize * 35);
+            });
+        }
+
+        HEAT = heat();
+
+
+
+    </script>
+</body>

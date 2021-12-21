@@ -1,0 +1,18 @@
+CarID,Timestamp,lat,long,LastName,FirstName,CurrentEmploymentType,CurrentEmploymentTitle
+12,18:27:21,36.06636848,24.90023596,Cocinaro,Hideki,Security,Site Control
+12,18:27:42,36.06523885,24.90165094,Cocinaro,Hideki,Security,Site Control
+12,18:28:03,36.06339058,24.90205071,Cocinaro,Hideki,Security,Site Control
+12,18:28:32,36.06249805,24.90418449,Cocinaro,Hideki,Security,Site Control
+12,18:28:52,36.06129052,24.90461638,Cocinaro,Hideki,Security,Site Control
+12,18:29:13,36.05995522,24.90399784,Cocinaro,Hideki,Security,Site Control
+12,18:29:46,36.05807209,24.9040567,Cocinaro,Hideki,Security,Site Control
+12,18:30:10,36.05633727,24.90282634,Cocinaro,Hideki,Security,Site Control
+12,19:29:23,36.05752794,24.90356145,Cocinaro,Hideki,Security,Site Control
+12,19:29:43,36.05886646,24.90468505,Cocinaro,Hideki,Security,Site Control
+12,19:30:02,36.05979766,24.90415078,Cocinaro,Hideki,Security,Site Control
+12,19:30:17,36.06068919,24.90427591,Cocinaro,Hideki,Security,Site Control
+12,19:30:45,36.06240212,24.9041853,Cocinaro,Hideki,Security,Site Control
+12,19:31:06,36.06299412,24.90245818,Cocinaro,Hideki,Security,Site Control
+12,19:31:21,36.06396354,24.90187552,Cocinaro,Hideki,Security,Site Control
+12,19:31:44,36.06570857,24.90118011,Cocinaro,Hideki,Security,Site Control
+12,19:32:00,36.06653795,24.89997962,Cocinaro,Hideki,Security,Site Control

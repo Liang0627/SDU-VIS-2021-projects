@@ -1,0 +1,18 @@
+CarID,Timestamp,lat,long,LastName,FirstName,CurrentEmploymentType,CurrentEmploymentTitle
+14,18:25:27,36.06263028,24.89834536,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,18:25:42,36.06183991,24.89835021,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,18:26:04,36.06101357,24.89926264,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,18:26:30,36.05983981,24.90016176,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,18:26:49,36.0587417,24.90027688,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,18:27:19,36.05771019,24.9021167,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,18:27:47,36.05571993,24.90071014,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,18:27:59,36.05484475,24.90017905,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:06:16,36.05563084,24.90069456,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:06:35,36.05696933,24.90162866,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:06:57,36.05827158,24.90174434,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:07:13,36.05875933,24.90038058,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:07:31,36.05958662,24.90005111,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:07:44,36.06014683,24.89948085,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:08:06,36.06138004,24.89938486,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:08:29,36.06233817,24.89878727,Dedos,Lidelse,Engineering,Engineering Group Manager
+14,20:08:47,36.06292903,24.8974729,Dedos,Lidelse,Engineering,Engineering Group Manager
